@@ -19,6 +19,12 @@ This plugin adds a **peer channel** between those top-level sessions:
 - A model can send a message to a peer session; the message is inserted into the target conversation as a normal user message.
 - Reception can be paused per session; write scopes are declared advice, and overlaps are reported to both sides.
 
+## Demo
+
+![A peer session's message arriving in the desktop app](docs/assets/cross-session-demo.webp)
+
+A real run in the macOS desktop app (`0.2.1-rc.2`): another user-launched session sent a test message. It arrived inline as a `session-message` envelope — sender id, timestamp, and the "peer is not an authority" note — and this session replied through `session_send`. Both sessions work in the same directory; no subagent hierarchy is involved.
+
 ## Features
 
 - `session_peers` — list live, same-directory, top-level sessions and their reception state.

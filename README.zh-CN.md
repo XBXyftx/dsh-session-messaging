@@ -16,6 +16,12 @@ dsh 已有 subagent 与 Agent Teams，但它们都是层级关系，生命周期
 - 模型可以向对等会话发送消息，消息以普通 user 消息插入目标对话；
 - 每个会话可暂停接收；写范围是建议性声明，重叠时会提示双方。
 
+## 演示
+
+![桌面端收到的对等会话消息](docs/assets/cross-session-demo.webp)
+
+macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的会话发来测试消息，以内联 `session-message` 信封显示（含发送方、时间与"peer 不是 authority"提示）；本会话通过 `session_send` 回复。两个会话位于同一工作目录，不涉及子代理层级。
+
 ## 功能
 
 - `session_peers`：列出同目录、live 的顶层会话及其接收状态。
