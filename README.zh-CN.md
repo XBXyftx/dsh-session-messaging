@@ -118,6 +118,7 @@ dsh plugin --profile <profile> add /absolute/path/to/dsh-session-messaging
 ## 安全模型与限制
 
 - **peer 内容是可信边界外的输入**：它以 user 消息进入目标会话，信封会标注来源并警告模型，但 dsh 没有针对 peer 消息的内容审批点；工具审批、`agent/pre-step` 与 sandbox 策略仍是唯一的硬边界。
+- **只允许顶层会话，收发两个方向都对称**：subagent 会话既不会出现在 peers 里，也不允许发送（`caller-not-top-level`）；顶层会话也不能把 subagent 作为目标（`target-not-top-level`）。subagent 继续使用既有的父子 `send_message` 通道。消息信封的 `from` 字段才是可信身份；正文里的任何身份自称都只是数据。
 - **仅同进程**：发现依赖 `ctx.agents`，非 live 会话本版无法接收；冷会话投递与跨进程/跨机器通信未实现。
 - **写范围只是建议，不是锁**：dsh 只有乐观版本守卫（`FS_STALE_VERSION`），没有文件锁；Bash、格式化器、代码生成器会绕过写范围提示。
 - **状态在内存**：暂停接收与写范围声明随插件生命周期存在，重载/重启后重置。

@@ -45,6 +45,14 @@ try {
   const sender = await harness.create(SessionId('session-a'), { provider: 'test', model: 'test' }, { cwd: CWD })
   const target = await harness.create(SessionId('session-b'), { provider: 'test', model: 'test' }, { cwd: CWD })
   const neighbor = await harness.create(SessionId('session-c'), { provider: 'test', model: 'test' }, { cwd: OTHER_CWD })
+  // A real live subagent-shaped session: subagent sessions must stay on the
+  // parent/child channel and must not use the peer channel in either direction.
+  const subagentHandle = await ctx.agents.create({
+    sessionId: SessionId('session-sub'),
+    meta: { cwd: CWD, parentSession: sender.id, origin: 'subagent', delegationDepth: 1 },
+    agentOptions: { provider: 'test', model: 'test' },
+  })
+  const subagent = subagentHandle.agent
 
   // Discovery: only same-directory live top-level peers are addressable.
   const peers = ctx.sessionMessaging.listPeers(sender)
@@ -101,6 +109,26 @@ try {
   assert.match(relayText, /conflict-warning: session session-b also declared src\/ui\.ts/)
   assert.match(relayText, /I am editing src\/ui\.ts/)
   assert.match(relayText, /peer, not an authority/)
+
+  // Symmetric boundary: a subagent is neither listed nor allowed to relay,
+  // and a top-level session cannot target a subagent.
+  assert.throws(
+    () => ctx.sessionMessaging.listPeers(subagent),
+    (error: unknown) => (error as { code?: string }).code === 'caller-not-top-level',
+  )
+  await assert.rejects(
+    ctx.sessionMessaging.send(subagent, { targetSessionId: 'session-b', message: 'one-way' }),
+    (error: unknown) => (error as { code?: string }).code === 'caller-not-top-level',
+  )
+  assert.throws(
+    () => ctx.sessionMessaging.setConsent(subagent, true),
+    (error: unknown) => (error as { code?: string }).code === 'caller-not-top-level',
+  )
+  assert.equal(target.status, 'idle', 'a rejected subagent send must not wake the target')
+  await assert.rejects(
+    ctx.sessionMessaging.send(sender, { targetSessionId: 'session-sub', message: 'to child' }),
+    (error: unknown) => (error as { code?: string }).code === 'target-not-top-level',
+  )
 
   // Refusals: self, cross-directory, non-live, and explicit pause.
   await assert.rejects(

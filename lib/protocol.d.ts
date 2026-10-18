@@ -17,7 +17,7 @@ export declare const MAX_WRITE_SCOPES = 32;
 /** Maximum length of one declared write scope. */
 export declare const MAX_WRITE_SCOPE_CHARS = 200;
 /** Stable refusal reasons surfaced to callers and tests. */
-export type MessagingErrorCode = 'invalid-request' | 'self-send' | 'target-not-live' | 'target-not-top-level' | 'target-not-opted-in' | 'target-paused' | 'cross-directory' | 'rate-limited' | 'delivery-rejected';
+export type MessagingErrorCode = 'invalid-request' | 'caller-not-top-level' | 'self-send' | 'target-not-live' | 'target-not-top-level' | 'target-not-opted-in' | 'target-paused' | 'cross-directory' | 'rate-limited' | 'delivery-rejected';
 /** Typed refusal that a tool call surfaces as an error result. */
 export declare class MessagingError extends Error {
     readonly code: MessagingErrorCode;

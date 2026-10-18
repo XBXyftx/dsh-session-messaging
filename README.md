@@ -123,6 +123,7 @@ The bundle row accepts validated configuration; every field has a default:
 ## Security model and limitations
 
 - **Peer content is untrusted input.** It enters the target session as a user message. The envelope labels the sender and warns the model, but dsh has no content-approval point for peer messages; normal tool approvals, `agent/pre-step`, and sandbox policy remain the only hard boundaries.
+- **Top-level sessions only, in both directions.** A subagent session is neither listed nor allowed to send (`caller-not-top-level`), and a top-level session cannot target a subagent (`target-not-top-level`). Subagents keep using the existing parent/child `send_message` channel. The envelope `from` field is the trusted identity; any identity claim in the message body is data only.
 - **Same process only.** Discovery uses `ctx.agents`; a session that is not live cannot receive a message in this version. Cold-session delivery and cross-process/cross-host messaging are not implemented.
 - **Advisory scopes, not locks.** dsh has optimistic filesystem version guards (`FS_STALE_VERSION`) but no file locking. `writeScopes` and `conflict-warning` are coordination aids; Bash, formatters, and code generators bypass them.
 - **In-memory state.** Reception pauses and declared scopes live for the plugin's lifetime and reset on reload/restart.

@@ -72,6 +72,7 @@ export class SessionMessagingService extends Service {
    * @returns peer views ordered by session registration.
    */
   listPeers(caller: Agent): PeerView[] {
+    this.assertTopLevelCaller(caller)
     const callerDirectory = caller.session.header.cwd
     const peers: PeerView[] = []
     for (const candidate of this.ctx.agents.roots()) {
@@ -101,9 +102,7 @@ export class SessionMessagingService extends Service {
    * @returns the stored consent entry.
    */
   setConsent(caller: Agent, enabled: boolean, writeScopes?: readonly string[]): ConsentEntry {
-    if (!isTopLevelSessionHeader(caller.session.header)) {
-      throw new MessagingError('target-not-top-level', 'only a user-launched top-level session may change reception')
-    }
+    this.assertTopLevelCaller(caller)
     const entry: ConsentEntry = {
       enabled,
       writeScopes: enabled ? normalizeWriteScopes(writeScopes) : [],
@@ -111,6 +110,24 @@ export class SessionMessagingService extends Service {
     }
     this.consent.set(caller.id, entry)
     return entry
+  }
+
+  /**
+   * Reject callers that are not user-launched top-level sessions.
+   *
+   * The peer channel is deliberately symmetric: a subagent is neither listed
+   * nor allowed to relay. Subagent sessions keep using the existing
+   * parent/child `send_message` channel instead of a one-way cross-session
+   * side channel.
+   * @param caller - the agent whose tool call is being validated.
+   * @throws {MessagingError} with `caller-not-top-level` for a subagent session.
+   */
+  private assertTopLevelCaller(caller: Agent): void {
+    if (isTopLevelSessionHeader(caller.session.header)) return
+    throw new MessagingError(
+      'caller-not-top-level',
+      `session ${caller.id} is not a user-launched top-level session; subagent sessions use the parent/child channel`,
+    )
   }
 
   /**
@@ -128,6 +145,7 @@ export class SessionMessagingService extends Service {
     if (typeof request.targetSessionId !== 'string' || request.targetSessionId.trim() === '') {
       throw new MessagingError('invalid-request', 'targetSessionId must be a non-empty string')
     }
+    this.assertTopLevelCaller(caller)
     const targetId = SessionId(request.targetSessionId.trim())
     if (targetId === caller.id && !this.config.allowSelfSend) {
       throw new MessagingError('self-send', 'a session cannot relay a message to itself')

@@ -26,6 +26,7 @@ export const MAX_WRITE_SCOPE_CHARS = 200
 /** Stable refusal reasons surfaced to callers and tests. */
 export type MessagingErrorCode =
   | 'invalid-request'
+  | 'caller-not-top-level'
   | 'self-send'
   | 'target-not-live'
   | 'target-not-top-level'

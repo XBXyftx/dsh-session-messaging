@@ -57,6 +57,17 @@ export declare class SessionMessagingService extends Service {
      */
     setConsent(caller: Agent, enabled: boolean, writeScopes?: readonly string[]): ConsentEntry;
     /**
+     * Reject callers that are not user-launched top-level sessions.
+     *
+     * The peer channel is deliberately symmetric: a subagent is neither listed
+     * nor allowed to relay. Subagent sessions keep using the existing
+     * parent/child `send_message` channel instead of a one-way cross-session
+     * side channel.
+     * @param caller - the agent whose tool call is being validated.
+     * @throws {MessagingError} with `caller-not-top-level` for a subagent session.
+     */
+    private assertTopLevelCaller;
+    /**
      * Relay one message to a live peer session.
      *
      * Success means the target agent accepted the message into its inbox and the
