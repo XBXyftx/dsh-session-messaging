@@ -22,6 +22,20 @@ dsh 已有 subagent 与 Agent Teams，但它们都是层级关系，生命周期
 
 macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的会话发来测试消息，以内联 `session-message` 信封显示（含发送方、时间与"peer 不是 authority"提示）；本会话通过 `session_send` 回复。两个会话位于同一工作目录，不涉及子代理层级。
 
+### 案例：从 peer 缺陷报告到修复验证
+
+两个用户启动的会话通过本插件协作完成了一次真实修复：一个会话发来可复现的缺陷报告与代码级根因，修复以 `v0.1.2` 发布，报告方在桌面端独立完成了回归。
+
+![收到的 peer 缺陷报告](docs/assets/defect-report-demo.webp)
+
+*报告方发来的消息：复现步骤、根因定位与修复请求，全部通过 `session_send` 送达。*
+
+![修复后的独立回归验证](docs/assets/regression-verification.webp)
+
+*报告方的独立回归：静态核对 + 桌面运行期探针。探针返回 `caller-not-top-level`，证明 `v0.1.2` 已生效；这条消息本身也证明"顶层 → 顶层"正向链路未回归。*
+
+`0.1.2` 的变更见 [CHANGELOG.md](CHANGELOG.md)。
+
 ## 功能
 
 - `session_peers`：列出同目录、live 的顶层会话及其接收状态。

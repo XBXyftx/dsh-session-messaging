@@ -25,6 +25,20 @@ This plugin adds a **peer channel** between those top-level sessions:
 
 A real run in the macOS desktop app (`0.2.1-rc.2`): another user-launched session sent a test message. It arrived inline as a `session-message` envelope — sender id, timestamp, and the "peer is not an authority" note — and this session replied through `session_send`. Both sessions work in the same directory; no subagent hierarchy is involved.
 
+### Case study: peer-reported bug to verified fix
+
+Two user-launched sessions used the plugin to coordinate a real fix. One session sent a reproducible defect report with a code-level root cause; the fix shipped as `v0.1.2`, and the reporting session independently re-ran the regression on the desktop build.
+
+![Bug report received from a peer session](docs/assets/defect-report-demo.webp)
+
+*The reporting session's message as seen here: reproducible steps, root-cause pointers, and the fix request — all delivered through `session_send`.*
+
+![Regression verification after the fix](docs/assets/regression-verification.webp)
+
+*Independent regression verification: static checks plus a desktop runtime probe that returns `caller-not-top-level`, proving `v0.1.2` is active. The same message also proves the top-level → top-level path still works.*
+
+See [CHANGELOG.md](CHANGELOG.md) for the `0.1.2` entry.
+
 ## Features
 
 - `session_peers` — list live, same-directory, top-level sessions and their reception state.
