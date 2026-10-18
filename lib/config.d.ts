@@ -13,7 +13,7 @@ export interface SessionMessagingConfig {
     readonly maxMessagesPerMinute: number;
     /** Require the target session to opt in before it can receive peer messages. Off by default: sessions are mutually visible and can message each other unless they pause reception. */
     readonly requireTargetOptIn: boolean;
-    /** Only allow peers whose working directory equals the sender's. */
+    /** Restrict peers to the sender's working directory. Off by default: cross-directory peers are allowed. */
     readonly sameDirectoryOnly: boolean;
     /** Allow a session to relay to itself (diagnostics only; off by default). */
     readonly allowSelfSend: boolean;

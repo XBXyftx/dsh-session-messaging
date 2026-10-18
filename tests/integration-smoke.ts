@@ -36,7 +36,7 @@ try {
     maxMessageChars: 4000,
     maxMessagesPerMinute: 100,
     requireTargetOptIn: false,
-    sameDirectoryOnly: true,
+    sameDirectoryOnly: false,
     allowSelfSend: false,
   })
   await ctx.plugin(Tools)
@@ -54,10 +54,10 @@ try {
   })
   const subagent = subagentHandle.agent
 
-  // Discovery: only same-directory live top-level peers are addressable.
+  // Discovery: live top-level peers are addressable across working directories by default.
   const peers = ctx.sessionMessaging.listPeers(sender)
-  assert.deepEqual(peers.map(peer => peer.sessionId), ['session-b'])
-  assert.equal(peers[0]?.canReceive, true)
+  assert.deepEqual(peers.map(peer => peer.sessionId), ['session-b', 'session-c'])
+  assert.equal(peers.every(peer => peer.canReceive), true)
 
   // The tools are registered through the real registry.
   const names = ctx.tools.schemas().map(schema => schema.name)
@@ -130,14 +130,23 @@ try {
     (error: unknown) => (error as { code?: string }).code === 'target-not-top-level',
   )
 
-  // Refusals: self, cross-directory, non-live, and explicit pause.
+  // Cross-directory delivery is allowed by default.
+  const crossDirectory = await ctx.sessionMessaging.send(sender, {
+    targetSessionId: 'session-c',
+    message: 'cross-directory coordination message',
+  })
+  assert.equal(crossDirectory.accepted, true)
+  await neighbor.whenIdle()
+  assert.equal(
+    neighbor.session.deriveMessages().some(message =>
+      (message.source as { kind?: string }).kind === 'session-message'),
+    true,
+  )
+
+  // Refusals: self, non-live, and explicit pause.
   await assert.rejects(
     ctx.sessionMessaging.send(sender, { targetSessionId: 'session-a', message: 'self' }),
     (error: unknown) => (error as { code?: string }).code === 'self-send',
-  )
-  await assert.rejects(
-    ctx.sessionMessaging.send(sender, { targetSessionId: 'session-c', message: 'other dir' }),
-    (error: unknown) => (error as { code?: string }).code === 'cross-directory',
   )
   await assert.rejects(
     ctx.sessionMessaging.send(sender, { targetSessionId: 'session-missing', message: 'nobody' }),
@@ -151,7 +160,7 @@ try {
   ctx.sessionMessaging.setConsent(target, true, ['src/api.ts'])
   ctx.sessionMessaging.setConsent(neighbor, true)
 
-  console.log('INTEGRATION-SMOKE OK: peers=1, tool=session_send, receipt=%s, history=%d', receipt.messageId, history.length)
+  console.log('INTEGRATION-SMOKE OK: peers=%d, tool=session_send, receipt=%s, history=%d', peers.length, receipt.messageId, history.length)
 } finally {
   await ctx.fiber.dispose()
 }

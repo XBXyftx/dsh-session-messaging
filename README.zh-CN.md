@@ -4,7 +4,7 @@
 
 [English](README.md) | **简体中文**
 
-> 状态：早期预览（`0.1.0`），适配 dsh `0.2.1-rc.2`。dsh 插件 API 仍为 pre-stable，上游升级可能带来破坏性变更。
+> 状态：早期预览（`0.2.0`），适配 dsh `0.2.1-rc.2`。dsh 插件 API 仍为 pre-stable，上游升级可能带来破坏性变更。
 
 ## 为什么需要
 
@@ -45,7 +45,7 @@ macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的�
 - 建议性**写范围冲突检测**：与 peer 声明重叠时，回执与消息信封带 `conflict-warning`。
 - 不新增 Session 事件类型、不改 `SESSION_FORMAT_VERSION`：消息就是带 `session-message` source 的 `user/message`。
 - 插件管理卡片提供中英双语标题、简介与图标（English / 简体中文）。
-- 有边界：长度上限、每 sender→target 限频、同目录、仅顶层、仅 live、拒绝自发送。
+- 有边界：长度上限、每 sender→target 限频、仅顶层、仅 live、拒绝自发送。默认允许跨目录对等会话；`sameDirectoryOnly: true` 可收紧为同工作目录。
 
 ## 工作原理
 
@@ -76,7 +76,7 @@ macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的�
 dsh plugin --profile <profile> add dsh-session-messaging
 ```
 
-包已发布为 [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging)（最新 `0.1.2`）。库用法：`npm install dsh-session-messaging`。
+包已发布为 [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging)（最新 `0.2.0`）。库用法：`npm install dsh-session-messaging`。
 
 ### 从 GitHub 安装
 
@@ -133,7 +133,7 @@ dsh plugin --profile <profile> add /absolute/path/to/dsh-session-messaging
     maxMessageChars: 4000
     maxMessagesPerMinute: 12
     requireTargetOptIn: false   # 默认对 peer 开放
-    sameDirectoryOnly: true
+    sameDirectoryOnly: false
     allowSelfSend: false
 ```
 
@@ -144,7 +144,7 @@ dsh plugin --profile <profile> add /absolute/path/to/dsh-session-messaging
 - **仅同进程**：发现依赖 `ctx.agents`，非 live 会话本版无法接收；冷会话投递与跨进程/跨机器通信未实现。
 - **写范围只是建议，不是锁**：dsh 只有乐观版本守卫（`FS_STALE_VERSION`），没有文件锁；Bash、格式化器、代码生成器会绕过写范围提示。
 - **状态在内存**：暂停接收与写范围声明随插件生命周期存在，重载/重启后重置。
-- **默认同目录**：除非理解跨项目影响，否则不要关闭 `sameDirectoryOnly`。
+- **默认允许跨目录**：不同工作目录的会话也可以互发消息。设置 `sameDirectoryOnly: true` 可恢复路径边界；无论是否限制，peer 内容都不可信。
 - **无 GUI 扩展**：消息按普通 user 消息显示；`session-message` 的专属标题/图标需要 client 插件或上游 `ui-chat` 改动。
 
 ## 开发

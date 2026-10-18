@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-10-18
+
+### Changed
+
+- **Cross-directory peers are allowed by default.** `session_peers` and
+  `session_send` now accept sessions whose working directory differs from the
+  sender's. Set `sameDirectoryOnly: true` in the plugin configuration to
+  restore the previous path restriction.
+- The change is a minor release because it changes default delivery behavior:
+  review the peer-content trust boundary before enabling it in shared hosts.
+
+### Tests
+
+- Integration coverage now exercises default cross-directory discovery and
+  delivery, plus an explicit `sameDirectoryOnly: true` policy test.
+
 ## [0.1.2] - 2026-10-18
 
 ### Fixed

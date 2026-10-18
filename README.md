@@ -8,7 +8,7 @@ Cross-session messaging for [DeepSeek Harness](https://github.com/deepseek-ai/de
 
 **English** | [简体中文](README.zh-CN.md)
 
-> Status: early preview (`0.1.0`). Targets dsh `0.2.1-rc.2`. dsh plugin APIs are pre-stable, so expect breaking changes on upstream upgrades.
+> Status: early preview (`0.2.0`). Targets dsh `0.2.1-rc.2`. dsh plugin APIs are pre-stable, so expect breaking changes on upstream upgrades.
 
 ## Why
 
@@ -49,7 +49,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the `0.1.2` entry.
 - Advisory **write-scope conflict detection**: if a peer declared an overlapping path, the receipt and the message envelope carry a `conflict-warning`.
 - No new Session event types and no `SESSION_FORMAT_VERSION` change: the relay is a durable `user/message` with a declared `session-message` source.
 - Bilingual plugin-card metadata and icons (English / 简体中文) for the dsh plugin manager.
-- Bounded: message size, per-sender→target rate limit, same-directory scope, top-level-only, live-only, self-send rejected.
+- Bounded: message size, per-sender→target rate limit, top-level-only, live-only, self-send rejected. Cross-directory peers are allowed by default; `sameDirectoryOnly: true` restricts to one working directory.
 
 ## How it works
 
@@ -80,7 +80,7 @@ The envelope always states that the message comes from another session, not the 
 dsh plugin --profile <profile> add dsh-session-messaging
 ```
 
-The package is published as [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging) (latest `0.1.2`). For library use: `npm install dsh-session-messaging`.
+The package is published as [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging) (latest `0.2.0`). For library use: `npm install dsh-session-messaging`.
 
 ### From GitHub
 
@@ -139,7 +139,7 @@ The bundle row accepts validated configuration; every field has a default:
     maxMessageChars: 4000
     maxMessagesPerMinute: 12
     requireTargetOptIn: false   # sessions are open to peers by default
-    sameDirectoryOnly: true
+    sameDirectoryOnly: false
     allowSelfSend: false
 ```
 
@@ -150,7 +150,7 @@ The bundle row accepts validated configuration; every field has a default:
 - **Same process only.** Discovery uses `ctx.agents`; a session that is not live cannot receive a message in this version. Cold-session delivery and cross-process/cross-host messaging are not implemented.
 - **Advisory scopes, not locks.** dsh has optimistic filesystem version guards (`FS_STALE_VERSION`) but no file locking. `writeScopes` and `conflict-warning` are coordination aids; Bash, formatters, and code generators bypass them.
 - **In-memory state.** Reception pauses and declared scopes live for the plugin's lifetime and reset on reload/restart.
-- **Same working directory by default.** Set `sameDirectoryOnly: false` only if you understand cross-project implications.
+- **Cross-directory by default.** Sessions in different working directories can message each other. Set `sameDirectoryOnly: true` to restore a path boundary; peer content remains untrusted either way.
 - **No GUI extension.** Messages render as ordinary user messages; a dedicated title/icon for the `session-message` source would require a client plugin or an upstream `ui-chat` change.
 
 ## Development
