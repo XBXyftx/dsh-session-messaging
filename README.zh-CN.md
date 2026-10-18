@@ -70,13 +70,21 @@ macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的�
 
 ## 安装
 
+### 从 npm 安装（推荐）
+
+```sh
+dsh plugin --profile <profile> add dsh-session-messaging
+```
+
+包已发布为 [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging)（最新 `0.1.2`）。库用法：`npm install dsh-session-messaging`。
+
 ### 从 GitHub 安装
 
 ```sh
 dsh plugin --profile <profile> add github:XBXyftx/dsh-session-messaging
 ```
 
-仓库包含构建好的 `lib/`，从 git 安装**不需要**额外构建。发布到 npm 后也可用包名 `dsh-session-messaging` 安装。
+仓库包含构建好的 `lib/`，从 git 安装不需要额外构建。
 
 ### 本地目录安装
 

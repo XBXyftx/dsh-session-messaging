@@ -3,6 +3,7 @@
 Cross-session messaging for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh): let **user-launched sessions in the same workspace message each other** to coordinate tasks, declared file-write scopes, and conflicts — without turning them into parent/child subagents.
 
 [![CI](https://github.com/XBXyftx/dsh-session-messaging/actions/workflows/ci.yml/badge.svg)](https://github.com/XBXyftx/dsh-session-messaging/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/dsh-session-messaging.svg)](https://www.npmjs.com/package/dsh-session-messaging)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **English** | [简体中文](README.zh-CN.md)
@@ -73,13 +74,21 @@ The envelope always states that the message comes from another session, not the 
 
 ## Install
 
+### From npm (recommended)
+
+```sh
+dsh plugin --profile <profile> add dsh-session-messaging
+```
+
+The package is published as [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging) (latest `0.1.2`). For library use: `npm install dsh-session-messaging`.
+
 ### From GitHub
 
 ```sh
 dsh plugin --profile <profile> add github:XBXyftx/dsh-session-messaging
 ```
 
-The repository ships the built `lib/` output, so installing from git does **not** run a build. If you prefer a registry, `npm publish` from this repository produces the same package (`dsh-session-messaging`).
+The repository ships the built `lib/` output, so a git install does not run a build.
 
 ### From a local checkout
 
