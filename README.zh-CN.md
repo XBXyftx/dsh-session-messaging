@@ -36,11 +36,18 @@ macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的�
 
 `0.1.2` 的变更见 [CHANGELOG.md](CHANGELOG.md)。
 
+### 设置面板
+
+![跨会话消息设置面板](docs/assets/panel.webp)
+
+侧边栏入口打开一个设置面板：切换跨目录消息（通过 dsh 设置表单持久化）、检查 npm 最新版本，并打开 npm / GitHub / 作者博客。安装或升级 bundle 后刷新一次 Web UI，客户端模块才会进入模块图。
+
 ## 功能
 
 - `session_peers`：列出同目录、live 的顶层会话及其接收状态。
 - `session_send`：发送协调消息，可附带 `writeScopes` 与 `replyTo`。
 - `session_reception`：暂停/恢复本会话接收对等消息，并声明写范围。
+- **侧边栏面板**：左侧“跨会话消息”入口，提供跨目录开关、版本更新检查与作者链接。
 - 消息直接内联显示在目标会话中，来源归属于发送会话，不需要独立收件箱。
 - 建议性**写范围冲突检测**：与 peer 声明重叠时，回执与消息信封带 `conflict-warning`。
 - 不新增 Session 事件类型、不改 `SESSION_FORMAT_VERSION`：消息就是带 `session-message` source 的 `user/message`。
@@ -76,7 +83,7 @@ macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的�
 dsh plugin --profile <profile> add dsh-session-messaging
 ```
 
-包已发布为 [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging)（最新 `0.2.0`）。库用法：`npm install dsh-session-messaging`。
+包已发布为 [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging)（最新 `0.3.0`）。库用法：`npm install dsh-session-messaging`。
 
 ### 从 GitHub 安装
 

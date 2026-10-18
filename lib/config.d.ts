@@ -13,10 +13,32 @@ export interface SessionMessagingConfig {
     readonly maxMessagesPerMinute: number;
     /** Require the target session to opt in before it can receive peer messages. Off by default: sessions are mutually visible and can message each other unless they pause reception. */
     readonly requireTargetOptIn: boolean;
-    /** Restrict peers to the sender's working directory. Off by default: cross-directory peers are allowed. */
+    /**
+     * Restrict peers to the sender's working directory. Off by default:
+     * cross-directory peers are allowed. Declared volatile so the sidebar panel
+     * can edit it through the dsh settings form.
+     */
     readonly sameDirectoryOnly: boolean;
     /** Allow a session to relay to itself (diagnostics only; off by default). */
     readonly allowSelfSend: boolean;
 }
 /** Schemastery schema for the plugin row's `config` block. */
-export declare const Config: Schema<SessionMessagingConfig>;
+export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{
+    maxMessageChars: Schema<number, number, "defined">;
+    maxMessagesPerMinute: Schema<number, number, "defined">;
+    requireTargetOptIn: Schema<boolean, boolean, "defined">;
+    sameDirectoryOnly: Schema<boolean, boolean, "volatile-defined">;
+    allowSelfSend: Schema<boolean, boolean, "defined">;
+}>>, Schemastery.ObjectT<NoInfer<{
+    maxMessageChars: Schema<number, number, "defined">;
+    maxMessagesPerMinute: Schema<number, number, "defined">;
+    requireTargetOptIn: Schema<boolean, boolean, "defined">;
+    sameDirectoryOnly: Schema<boolean, boolean, "volatile-defined">;
+    allowSelfSend: Schema<boolean, boolean, "defined">;
+}>>, "plain">;
+/** Plugin runtime config: volatile fields arrive as stable references. */
+export interface ResolvedSessionMessagingConfig extends Omit<SessionMessagingConfig, 'sameDirectoryOnly'> {
+    readonly sameDirectoryOnly: {
+        get(): boolean;
+    };
+}

@@ -9,7 +9,7 @@
 import { Service, type Context } from '@deepseek-ai/cordis';
 import type { Agent } from '@deepseek-ai/dsh-agent';
 import { Config } from './config.ts';
-import type { SessionMessagingConfig } from './config.ts';
+import type { ResolvedSessionMessagingConfig } from './config.ts';
 import type { PeerView, SendReceipt, SendRequest } from './protocol.ts';
 /** One session's receive consent and advisory write scopes. */
 interface ConsentEntry {
@@ -31,7 +31,19 @@ declare module '@deepseek-ai/cordis' {
 export declare class SessionMessagingService extends Service {
     static inject: string[];
     /** Loader-read configuration schema; defaults apply when the row omits `config`. */
-    static Config: import("@deepseek-ai/schemastery").default<SessionMessagingConfig>;
+    static Config: import("@deepseek-ai/schemastery").default<Schemastery.ObjectS<NoInfer<{
+        maxMessageChars: import("@deepseek-ai/schemastery").default<number, number, "defined">;
+        maxMessagesPerMinute: import("@deepseek-ai/schemastery").default<number, number, "defined">;
+        requireTargetOptIn: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
+        sameDirectoryOnly: import("@deepseek-ai/schemastery").default<boolean, boolean, "volatile-defined">;
+        allowSelfSend: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
+    }>>, Schemastery.ObjectT<NoInfer<{
+        maxMessageChars: import("@deepseek-ai/schemastery").default<number, number, "defined">;
+        maxMessagesPerMinute: import("@deepseek-ai/schemastery").default<number, number, "defined">;
+        requireTargetOptIn: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
+        sameDirectoryOnly: import("@deepseek-ai/schemastery").default<boolean, boolean, "volatile-defined">;
+        allowSelfSend: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
+    }>>, "plain">;
     private readonly config;
     private readonly limiter;
     private readonly consent;
@@ -39,7 +51,7 @@ export declare class SessionMessagingService extends Service {
      * @param ctx - Cordis context with `agents` and `sessions` ready.
      * @param config - validated plugin configuration.
      */
-    constructor(ctx: Context, config: SessionMessagingConfig);
+    constructor(ctx: Context, config: ResolvedSessionMessagingConfig);
     /**
      * List live user-launched peers the caller may address.
      * @param caller - the agent whose tool call is inspecting peers.

@@ -13,7 +13,7 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import { Config } from './config.ts'
-import type { SessionMessagingConfig } from './config.ts'
+import type { ResolvedSessionMessagingConfig } from './config.ts'
 import {
   MessagingError,
   SESSION_MESSAGE_KIND,
@@ -52,7 +52,7 @@ export class SessionMessagingService extends Service {
   /** Loader-read configuration schema; defaults apply when the row omits `config`. */
   static Config = Config
 
-  private readonly config: SessionMessagingConfig
+  private readonly config: ResolvedSessionMessagingConfig
   private readonly limiter: SlidingWindowRateLimiter
   private readonly consent = new Map<string, ConsentEntry>()
 
@@ -60,7 +60,7 @@ export class SessionMessagingService extends Service {
    * @param ctx - Cordis context with `agents` and `sessions` ready.
    * @param config - validated plugin configuration.
    */
-  constructor(ctx: Context, config: SessionMessagingConfig) {
+  constructor(ctx: Context, config: ResolvedSessionMessagingConfig) {
     super(ctx, 'sessionMessaging')
     this.config = config
     this.limiter = new SlidingWindowRateLimiter(config.maxMessagesPerMinute)
@@ -78,7 +78,7 @@ export class SessionMessagingService extends Service {
     for (const candidate of this.ctx.agents.roots()) {
       if (candidate.id === caller.id) continue
       if (!isTopLevelSessionHeader(candidate.session.header)) continue
-      if (this.config.sameDirectoryOnly && !sameDirectory(callerDirectory, candidate.session.header.cwd)) {
+      if (this.config.sameDirectoryOnly.get() && !sameDirectory(callerDirectory, candidate.session.header.cwd)) {
         continue
       }
       const consent = this.consent.get(candidate.id)
@@ -180,7 +180,7 @@ export class SessionMessagingService extends Service {
     if (!isTopLevelSessionHeader(target.session.header)) {
       throw new MessagingError('target-not-top-level', `session ${targetId} is not a user-launched top-level session`)
     }
-    if (this.config.sameDirectoryOnly && !sameDirectory(caller.session.header.cwd, target.session.header.cwd)) {
+    if (this.config.sameDirectoryOnly.get() && !sameDirectory(caller.session.header.cwd, target.session.header.cwd)) {
       throw new MessagingError('cross-directory', 'the target session works in a different directory')
     }
     const consent = this.consent.get(targetId)

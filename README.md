@@ -40,11 +40,18 @@ Two user-launched sessions used the plugin to coordinate a real fix. One session
 
 See [CHANGELOG.md](CHANGELOG.md) for the `0.1.2` entry.
 
+### Settings panel
+
+![Session Messaging settings panel](docs/assets/panel.webp)
+
+The sidebar entry opens a small panel: toggle cross-directory messaging (persisted through the dsh settings form), check the latest npm version, and open npm, GitHub, or the author's blog. After installing or upgrading the bundle, refresh the Web UI once so the client half joins the module graph.
+
 ## Features
 
 - `session_peers` — list live, same-directory, top-level sessions and their reception state.
 - `session_send` — relay a coordination message, optionally declaring `writeScopes` and replying to a message.
 - `session_reception` — pause/resume receiving peer messages for the current session and declare its write scopes.
+- **Sidebar panel** — a “Session Messaging” entry in the left sidebar with a cross-directory toggle, update check, and author links.
 - Messages appear inline in the target conversation, attributed to the sending session — no separate inbox UI.
 - Advisory **write-scope conflict detection**: if a peer declared an overlapping path, the receipt and the message envelope carry a `conflict-warning`.
 - No new Session event types and no `SESSION_FORMAT_VERSION` change: the relay is a durable `user/message` with a declared `session-message` source.
@@ -80,7 +87,7 @@ The envelope always states that the message comes from another session, not the 
 dsh plugin --profile <profile> add dsh-session-messaging
 ```
 
-The package is published as [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging) (latest `0.2.0`). For library use: `npm install dsh-session-messaging`.
+The package is published as [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging) (latest `0.3.0`). For library use: `npm install dsh-session-messaging`.
 
 ### From GitHub
 

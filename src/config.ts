@@ -16,17 +16,27 @@ export interface SessionMessagingConfig {
   readonly maxMessagesPerMinute: number
   /** Require the target session to opt in before it can receive peer messages. Off by default: sessions are mutually visible and can message each other unless they pause reception. */
   readonly requireTargetOptIn: boolean
-  /** Restrict peers to the sender's working directory. Off by default: cross-directory peers are allowed. */
+  /**
+   * Restrict peers to the sender's working directory. Off by default:
+   * cross-directory peers are allowed. Declared volatile so the sidebar panel
+   * can edit it through the dsh settings form.
+   */
   readonly sameDirectoryOnly: boolean
   /** Allow a session to relay to itself (diagnostics only; off by default). */
   readonly allowSelfSend: boolean
 }
 
 /** Schemastery schema for the plugin row's `config` block. */
-export const Config: Schema<SessionMessagingConfig> = Schema.object({
+export const Config = Schema.object({
   maxMessageChars: Schema.number().min(1).default(DEFAULT_MAX_MESSAGE_CHARS),
   maxMessagesPerMinute: Schema.number().min(1).default(DEFAULT_MAX_MESSAGES_PER_MINUTE),
   requireTargetOptIn: Schema.boolean().default(false),
-  sameDirectoryOnly: Schema.boolean().default(false),
+  sameDirectoryOnly: Schema.boolean().default(false).volatile(),
   allowSelfSend: Schema.boolean().default(false),
 })
+
+
+/** Plugin runtime config: volatile fields arrive as stable references. */
+export interface ResolvedSessionMessagingConfig extends Omit<SessionMessagingConfig, 'sameDirectoryOnly'> {
+  readonly sameDirectoryOnly: { get(): boolean }
+}

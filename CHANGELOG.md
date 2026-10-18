@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-10-18
+
+### Added
+
+- A client-side sidebar panel, “Session Messaging”, with:
+  - a cross-directory toggle persisted through the dsh settings form
+    (`sameDirectoryOnly` is now a volatile config field);
+  - an npm update check against the published package;
+  - links to npm, GitHub, and the author's blog.
+
+### Changed
+
+- The `sameDirectoryOnly` config field is volatile, so the panel can edit it
+  at runtime without editing the profile patch by hand.
+
 ## [0.2.0] - 2026-10-18
 
 ### Changed

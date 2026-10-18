@@ -1,6 +1,6 @@
 {
   "name": "dsh-session-messaging",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Peer messaging between user-launched sessions in one workspace: discover peers, relay coordination messages, pause reception, and get advisory write-scope conflict warnings.",
   "license": "MIT",
   "type": "module",
@@ -15,6 +15,7 @@
       "types": "./lib/tools.d.ts",
       "default": "./lib/tools.js"
     },
+    "./client": "./client/client.js",
     "./locale/*.json": "./locale/*.json",
     "./tools/locale/*.json": "./tools/locale/*.json",
     "./tools/icon": "./assets/tools-icon.svg",
@@ -23,6 +24,7 @@
   },
   "files": [
     "lib",
+    "client",
     "locale",
     "tools/locale",
     "assets",
@@ -83,6 +85,14 @@
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ]
     }
   },
   "icon": "./assets/icon.svg",

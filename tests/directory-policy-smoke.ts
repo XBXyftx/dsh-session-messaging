@@ -18,8 +18,9 @@ const OTHER_CWD = '/tmp/dsh-session-messaging-policy-other'
 
 // Schema default: cross-directory peers are allowed.
 const defaults = (Config as unknown as { ['~standard']: { validate: (value: unknown) => { value?: unknown } } })['~standard'].validate({})
-const parsed = defaults.value as { sameDirectoryOnly: boolean, requireTargetOptIn: boolean }
-assert.equal(parsed.sameDirectoryOnly, false)
+const parsed = defaults.value as { sameDirectoryOnly: boolean | { get(): boolean }, requireTargetOptIn: boolean }
+const sameDirectory = typeof parsed.sameDirectoryOnly === 'object' ? parsed.sameDirectoryOnly.get() : parsed.sameDirectoryOnly
+assert.equal(sameDirectory, false)
 assert.equal(parsed.requireTargetOptIn, false)
 
 const ctx = new Context()
