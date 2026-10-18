@@ -29,7 +29,8 @@
     "cordis.patch.yml",
     "README.md",
     "README.zh-CN.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "keywords": [
     "deepseek-harness",
@@ -84,5 +85,8 @@
       "patch": "./cordis.patch.yml"
     }
   },
-  "icon": "./assets/icon.svg"
+  "icon": "./assets/icon.svg",
+  "publishConfig": {
+    "access": "public"
+  }
 }
