@@ -32,6 +32,7 @@ export type MessagingErrorCode =
   | 'target-not-top-level'
   | 'target-not-opted-in'
   | 'target-paused'
+  | 'cold-delivery-failed'
   | 'cross-directory'
   | 'rate-limited'
   | 'delivery-rejected'
@@ -69,6 +70,8 @@ export interface SendReceipt {
   readonly targetStatus: 'idle' | 'running'
   /** Advisory overlaps with peers' declared write scopes; empty means none detected. */
   readonly conflicts: readonly ScopeConflict[]
+  /** Whether delivery used a live Agent or resumed a persisted session first. */
+  readonly delivery: 'live' | 'resumed'
 }
 
 /** One same-workspace peer as the model sees it. */

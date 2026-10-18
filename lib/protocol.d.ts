@@ -17,7 +17,7 @@ export declare const MAX_WRITE_SCOPES = 32;
 /** Maximum length of one declared write scope. */
 export declare const MAX_WRITE_SCOPE_CHARS = 200;
 /** Stable refusal reasons surfaced to callers and tests. */
-export type MessagingErrorCode = 'invalid-request' | 'caller-not-top-level' | 'self-send' | 'target-not-live' | 'target-not-top-level' | 'target-not-opted-in' | 'target-paused' | 'cross-directory' | 'rate-limited' | 'delivery-rejected';
+export type MessagingErrorCode = 'invalid-request' | 'caller-not-top-level' | 'self-send' | 'target-not-live' | 'target-not-top-level' | 'target-not-opted-in' | 'target-paused' | 'cold-delivery-failed' | 'cross-directory' | 'rate-limited' | 'delivery-rejected';
 /** Typed refusal that a tool call surfaces as an error result. */
 export declare class MessagingError extends Error {
     readonly code: MessagingErrorCode;
@@ -43,6 +43,8 @@ export interface SendReceipt {
     readonly targetStatus: 'idle' | 'running';
     /** Advisory overlaps with peers' declared write scopes; empty means none detected. */
     readonly conflicts: readonly ScopeConflict[];
+    /** Whether delivery used a live Agent or resumed a persisted session first. */
+    readonly delivery: 'live' | 'resumed';
 }
 /** One same-workspace peer as the model sees it. */
 export interface PeerView {

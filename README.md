@@ -56,7 +56,8 @@ The sidebar entry opens a small panel: toggle cross-directory messaging (persist
 - Advisory **write-scope conflict detection**: if a peer declared an overlapping path, the receipt and the message envelope carry a `conflict-warning`.
 - No new Session event types and no `SESSION_FORMAT_VERSION` change: the relay is a durable `user/message` with a declared `session-message` source.
 - Bilingual plugin-card metadata and icons (English / 简体中文) for the dsh plugin manager.
-- Bounded: message size, per-sender→target rate limit, top-level-only, live-only, self-send rejected. Cross-directory peers are allowed by default; `sameDirectoryOnly: true` restricts to one working directory.
+- **Cold-session delivery** — a persisted session that is not live is resumed through the Web/Desktop `sessionController` before delivery (`allowColdDelivery`, on by default).
+- Bounded: message size, per-sender→target rate limit, top-level-only, self-send rejected. Cross-directory peers are allowed by default; `sameDirectoryOnly: true` restricts to one working directory.
 
 ## How it works
 
@@ -87,7 +88,7 @@ The envelope always states that the message comes from another session, not the 
 dsh plugin --profile <profile> add dsh-session-messaging
 ```
 
-The package is published as [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging) (latest `0.3.0`). For library use: `npm install dsh-session-messaging`.
+The package is published as [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging) (latest `0.4.0`). For library use: `npm install dsh-session-messaging`.
 
 ### From GitHub
 
@@ -157,13 +158,14 @@ The bundle row accepts validated configuration; every field has a default:
     requireTargetOptIn: false   # sessions are open to peers by default
     sameDirectoryOnly: false
     allowSelfSend: false
+    allowColdDelivery: true   # resume a persisted target when it is not live
 ```
 
 ## Security model and limitations
 
 - **Peer content is untrusted input.** It enters the target session as a user message. The envelope labels the sender and warns the model, but dsh has no content-approval point for peer messages; normal tool approvals, `agent/pre-step`, and sandbox policy remain the only hard boundaries.
 - **Top-level sessions only, in both directions.** A subagent session is neither listed nor allowed to send (`caller-not-top-level`), and a top-level session cannot target a subagent (`target-not-top-level`). Subagents keep using the existing parent/child `send_message` channel. The envelope `from` field is the trusted identity; any identity claim in the message body is data only.
-- **Same process only.** Discovery uses `ctx.agents`; a session that is not live cannot receive a message in this version. Cold-session delivery and cross-process/cross-host messaging are not implemented.
+- **Cold sessions are resumed, not queued.** When the target is not live and `allowColdDelivery` is on, the plugin calls the deployment's `sessionController.resolveAgent()`, which resumes that session and may start a model turn (token cost). Profiles without that controller still answer `target-not-live`. Archived or subagent-owned sessions are refused by the controller/session gate. Cross-process/cross-host messaging remains unimplemented.
 - **Advisory scopes, not locks.** dsh has optimistic filesystem version guards (`FS_STALE_VERSION`) but no file locking. `writeScopes` and `conflict-warning` are coordination aids; Bash, formatters, and code generators bypass them.
 - **In-memory state.** Reception pauses and declared scopes live for the plugin's lifetime and reset on reload/restart.
 - **Cross-directory by default.** Sessions in different working directories can message each other. Set `sameDirectoryOnly: true` to restore a path boundary; peer content remains untrusted either way.

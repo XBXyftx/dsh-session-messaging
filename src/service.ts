@@ -27,6 +27,15 @@ import {
 } from './protocol.ts'
 import type { PeerView, SendReceipt, SendRequest } from './protocol.ts'
 import type {} from './types.ts'
+import type {} from '@deepseek-ai/dsh-api-session-controller'
+
+/** Minimal cold-resume face from the Web/Desktop session controller. */
+interface ColdResumeController {
+  resolveAgent(sessionId: SessionId): Promise<
+    | { readonly agent: Agent }
+    | { readonly error: { readonly code?: string, readonly message?: string } }
+  >
+}
 
 /** One session's receive consent and advisory write scopes. */
 interface ConsentEntry {
@@ -131,7 +140,66 @@ export class SessionMessagingService extends Service {
   }
 
   /**
-   * Relay one message to a live peer session.
+   * Enforce per-target consent and the sender→target rate limit once.
+   * @param caller - sending agent.
+   * @param targetId - target session identity.
+   */
+  private checkConsentAndRate(caller: Agent, targetId: SessionId): void {
+    const consent = this.consent.get(targetId)
+    if (this.config.requireTargetOptIn && consent?.enabled !== true) {
+      throw new MessagingError('target-not-opted-in', `session ${targetId} has not opted in to peer messages`)
+    }
+    if (consent?.enabled === false) {
+      throw new MessagingError('target-paused', `session ${targetId} has paused peer messages`)
+    }
+    const pairKey = `${caller.id}->${targetId}`
+    if (!this.limiter.allow(pairKey, Date.now())) {
+      throw new MessagingError(
+        'rate-limited',
+        `more than ${this.config.maxMessagesPerMinute} messages per minute were sent to this session`,
+      )
+    }
+  }
+
+  /**
+   * Resume a persisted, non-live session through the deployment's session
+   * controller. Web and Desktop mount one; profiles without it keep the
+   * `target-not-live` refusal.
+   * @param targetId - persisted session identity to resume.
+   * @returns the resumed live Agent.
+   * @throws {MessagingError} with `target-not-live` without a controller, or
+   *   `cold-delivery-failed` when resume refuses.
+   */
+  private async resumeColdAgent(targetId: SessionId): Promise<Agent> {
+    const controller = this.ctx.get('sessionController') as ColdResumeController | undefined
+    if (controller === undefined) {
+      throw new MessagingError(
+        'target-not-live',
+        `session ${targetId} is not live and this profile has no session controller for cold resume`,
+      )
+    }
+    let resolved: Awaited<ReturnType<ColdResumeController['resolveAgent']>>
+    try {
+      resolved = await controller.resolveAgent(targetId)
+    } catch (error: unknown) {
+      throw new MessagingError(
+        'cold-delivery-failed',
+        `cold resume failed for ${targetId}: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
+    if ('error' in resolved) {
+      const detail = resolved.error.message === undefined ? '' : ` (${resolved.error.message})`
+      throw new MessagingError(
+        'cold-delivery-failed',
+        `cold resume failed for ${targetId}: ${resolved.error.code ?? 'error'}${detail}`,
+      )
+    }
+    return resolved.agent
+  }
+
+  /**
+   * Relay one message to a live peer session, resuming a persisted session
+   * first when `allowColdDelivery` is enabled.
    *
    * Success means the target agent accepted the message into its inbox and the
    * session flush acknowledged persistence. It does not mean the target model
@@ -170,12 +238,21 @@ export class SessionMessagingService extends Service {
         .filter(peer => peer.scopes.length > 0),
     )
 
-    const target = this.ctx.agents.get(targetId)
+    let target = this.ctx.agents.get(targetId)
+    let delivery: 'live' | 'resumed' = 'live'
+    let policyChecked = false
     if (target === undefined) {
-      throw new MessagingError(
-        'target-not-live',
-        `session ${targetId} is not live in this Harness process; cold-session delivery is not implemented yet`,
-      )
+      if (!this.config.allowColdDelivery) {
+        throw new MessagingError(
+          'target-not-live',
+          `session ${targetId} is not live and cold-session delivery is disabled`,
+        )
+      }
+      // Check consent and rate limits before paying for a resume/turn.
+      this.checkConsentAndRate(caller, targetId)
+      policyChecked = true
+      target = await this.resumeColdAgent(targetId)
+      delivery = 'resumed'
     }
     if (!isTopLevelSessionHeader(target.session.header)) {
       throw new MessagingError('target-not-top-level', `session ${targetId} is not a user-launched top-level session`)
@@ -183,21 +260,7 @@ export class SessionMessagingService extends Service {
     if (this.config.sameDirectoryOnly.get() && !sameDirectory(caller.session.header.cwd, target.session.header.cwd)) {
       throw new MessagingError('cross-directory', 'the target session works in a different directory')
     }
-    const consent = this.consent.get(targetId)
-    if (this.config.requireTargetOptIn && consent?.enabled !== true) {
-      throw new MessagingError('target-not-opted-in', `session ${targetId} has not opted in to peer messages`)
-    }
-    if (consent?.enabled === false) {
-      throw new MessagingError('target-paused', `session ${targetId} has paused peer messages`)
-    }
-
-    const pairKey = `${caller.id}->${targetId}`
-    if (!this.limiter.allow(pairKey, Date.now())) {
-      throw new MessagingError(
-        'rate-limited',
-        `more than ${this.config.maxMessagesPerMinute} messages per minute were sent to this session`,
-      )
-    }
+    if (!policyChecked) this.checkConsentAndRate(caller, targetId)
 
     const messageId = `session-message-${randomUUID()}`
     const text = buildRelayText({
@@ -230,6 +293,7 @@ export class SessionMessagingService extends Service {
       targetSessionId: targetId,
       targetStatus: target.status,
       conflicts,
+      delivery,
     }
   }
 }

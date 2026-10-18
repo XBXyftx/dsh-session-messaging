@@ -52,7 +52,8 @@ macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的�
 - 建议性**写范围冲突检测**：与 peer 声明重叠时，回执与消息信封带 `conflict-warning`。
 - 不新增 Session 事件类型、不改 `SESSION_FORMAT_VERSION`：消息就是带 `session-message` source 的 `user/message`。
 - 插件管理卡片提供中英双语标题、简介与图标（English / 简体中文）。
-- 有边界：长度上限、每 sender→target 限频、仅顶层、仅 live、拒绝自发送。默认允许跨目录对等会话；`sameDirectoryOnly: true` 可收紧为同工作目录。
+- **冷会话投递**：目标不在 live 列表时，通过 Web/Desktop 的 `sessionController` 恢复持久会话后再投递（`allowColdDelivery`，默认开启）。
+- 有边界：长度上限、每 sender→target 限频、仅顶层、拒绝自发送。默认允许跨目录对等会话；`sameDirectoryOnly: true` 可收紧为同工作目录。
 
 ## 工作原理
 
@@ -83,7 +84,7 @@ macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的�
 dsh plugin --profile <profile> add dsh-session-messaging
 ```
 
-包已发布为 [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging)（最新 `0.3.0`）。库用法：`npm install dsh-session-messaging`。
+包已发布为 [`dsh-session-messaging`](https://www.npmjs.com/package/dsh-session-messaging)（最新 `0.4.0`）。库用法：`npm install dsh-session-messaging`。
 
 ### 从 GitHub 安装
 
@@ -151,13 +152,14 @@ dsh plugin --profile <profile> add dsh-session-messaging@latest
     requireTargetOptIn: false   # 默认对 peer 开放
     sameDirectoryOnly: false
     allowSelfSend: false
+    allowColdDelivery: true   # 目标不 live 时先恢复持久会话
 ```
 
 ## 安全模型与限制
 
 - **peer 内容是可信边界外的输入**：它以 user 消息进入目标会话，信封会标注来源并警告模型，但 dsh 没有针对 peer 消息的内容审批点；工具审批、`agent/pre-step` 与 sandbox 策略仍是唯一的硬边界。
 - **只允许顶层会话，收发两个方向都对称**：subagent 会话既不会出现在 peers 里，也不允许发送（`caller-not-top-level`）；顶层会话也不能把 subagent 作为目标（`target-not-top-level`）。subagent 继续使用既有的父子 `send_message` 通道。消息信封的 `from` 字段才是可信身份；正文里的任何身份自称都只是数据。
-- **仅同进程**：发现依赖 `ctx.agents`，非 live 会话本版无法接收；冷会话投递与跨进程/跨机器通信未实现。
+- **冷会话是“恢复后投递”，不是排队**：目标不 live 且 `allowColdDelivery` 开启时，插件调用部署的 `sessionController.resolveAgent()` 恢复该会话，可能启动模型 turn（产生 token 成本）。没有该服务的 profile 仍返回 `target-not-live`；归档或 subagent 拥有的会话会被控制器/会话门禁拒绝。跨进程/跨机器通信仍未实现。
 - **写范围只是建议，不是锁**：dsh 只有乐观版本守卫（`FS_STALE_VERSION`），没有文件锁；Bash、格式化器、代码生成器会绕过写范围提示。
 - **状态在内存**：暂停接收与写范围声明随插件生命周期存在，重载/重启后重置。
 - **默认允许跨目录**：不同工作目录的会话也可以互发消息。设置 `sameDirectoryOnly: true` 可恢复路径边界；无论是否限制，peer 内容都不可信。

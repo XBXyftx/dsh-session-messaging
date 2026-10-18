@@ -37,12 +37,14 @@ export declare class SessionMessagingService extends Service {
         requireTargetOptIn: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
         sameDirectoryOnly: import("@deepseek-ai/schemastery").default<boolean, boolean, "volatile-defined">;
         allowSelfSend: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
+        allowColdDelivery: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
     }>>, Schemastery.ObjectT<NoInfer<{
         maxMessageChars: import("@deepseek-ai/schemastery").default<number, number, "defined">;
         maxMessagesPerMinute: import("@deepseek-ai/schemastery").default<number, number, "defined">;
         requireTargetOptIn: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
         sameDirectoryOnly: import("@deepseek-ai/schemastery").default<boolean, boolean, "volatile-defined">;
         allowSelfSend: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
+        allowColdDelivery: import("@deepseek-ai/schemastery").default<boolean, boolean, "defined">;
     }>>, "plain">;
     private readonly config;
     private readonly limiter;
@@ -80,7 +82,24 @@ export declare class SessionMessagingService extends Service {
      */
     private assertTopLevelCaller;
     /**
-     * Relay one message to a live peer session.
+     * Enforce per-target consent and the sender→target rate limit once.
+     * @param caller - sending agent.
+     * @param targetId - target session identity.
+     */
+    private checkConsentAndRate;
+    /**
+     * Resume a persisted, non-live session through the deployment's session
+     * controller. Web and Desktop mount one; profiles without it keep the
+     * `target-not-live` refusal.
+     * @param targetId - persisted session identity to resume.
+     * @returns the resumed live Agent.
+     * @throws {MessagingError} with `target-not-live` without a controller, or
+     *   `cold-delivery-failed` when resume refuses.
+     */
+    private resumeColdAgent;
+    /**
+     * Relay one message to a live peer session, resuming a persisted session
+     * first when `allowColdDelivery` is enabled.
      *
      * Success means the target agent accepted the message into its inbox and the
      * session flush acknowledged persistence. It does not mean the target model

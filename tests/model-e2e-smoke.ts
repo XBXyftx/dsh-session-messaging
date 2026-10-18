@@ -83,6 +83,7 @@ try {
     requireTargetOptIn: false,
     sameDirectoryOnly: true,
     allowSelfSend: false,
+    allowColdDelivery: true,
   })
   await ctx.plugin(Tools)
 

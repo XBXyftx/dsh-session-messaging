@@ -1,6 +1,6 @@
 {
   "name": "dsh-session-messaging",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Peer messaging between user-launched sessions in one workspace: discover peers, relay coordination messages, pause reception, and get advisory write-scope conflict warnings.",
   "license": "MIT",
   "type": "module",
@@ -62,7 +62,8 @@
     "@deepseek-ai/dsh-llm": "^0.2.1-rc.2",
     "@deepseek-ai/dsh-session": "^0.2.1-rc.2",
     "@deepseek-ai/dsh-tools": "^0.2.1-rc.2",
-    "@deepseek-ai/schemastery": "^3.18.5"
+    "@deepseek-ai/schemastery": "^3.18.5",
+    "@deepseek-ai/dsh-api-session-controller": "^0.2.1-rc.2"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.5",
@@ -73,13 +74,14 @@
     "@deepseek-ai/dsh-tools": "^0.2.1-rc.2",
     "@deepseek-ai/schemastery": "^3.18.5",
     "@types/node": "^24.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "@deepseek-ai/dsh-api-session-controller": "^0.2.1-rc.2"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --experimental-strip-types --test tests/protocol.test.ts",
-    "test:integration": "node --experimental-strip-types tests/integration-smoke.ts && node --experimental-strip-types tests/directory-policy-smoke.ts",
+    "test:integration": "node --experimental-strip-types tests/integration-smoke.ts && node --experimental-strip-types tests/directory-policy-smoke.ts && node --experimental-strip-types tests/cold-delivery-smoke.ts",
     "test:model-e2e": "node --experimental-strip-types tests/model-e2e-smoke.ts"
   },
   "dsh": {

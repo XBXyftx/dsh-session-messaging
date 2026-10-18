@@ -24,6 +24,8 @@ export interface SessionMessagingConfig {
   readonly sameDirectoryOnly: boolean
   /** Allow a session to relay to itself (diagnostics only; off by default). */
   readonly allowSelfSend: boolean
+  /** Resume a persisted, non-live session through sessionController before delivery. */
+  readonly allowColdDelivery: boolean
 }
 
 /** Schemastery schema for the plugin row's `config` block. */
@@ -33,6 +35,7 @@ export const Config = Schema.object({
   requireTargetOptIn: Schema.boolean().default(false),
   sameDirectoryOnly: Schema.boolean().default(false).volatile(),
   allowSelfSend: Schema.boolean().default(false),
+  allowColdDelivery: Schema.boolean().default(true),
 })
 
 

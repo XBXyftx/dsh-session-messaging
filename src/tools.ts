@@ -97,6 +97,7 @@ export function apply(ctx: Context): void {
           messageId: { type: 'string', required: true },
           targetSessionId: { type: 'string', required: true },
           targetStatus: { type: 'string', required: true, enum: ['idle', 'running'] },
+          delivery: { type: 'string', required: true, enum: ['live', 'resumed'] },
           conflicts: {
             type: 'array',
             required: true,
@@ -116,9 +117,10 @@ export function apply(ctx: Context): void {
         const warning = value.conflicts.length === 0
           ? ''
           : ` Conflict warning: ${value.conflicts.map(conflict => `${conflict.sessionId} also declared ${conflict.scopes.join(', ')}`).join('; ')}. Coordinate before writing those paths.`
+        const resumed = value.delivery === 'resumed' ? ' The target was a persisted session and was resumed for delivery.' : ''
         return [{
           type: 'text',
-          text: `Message ${value.messageId} accepted by session ${value.targetSessionId} (${value.targetStatus}). Acceptance means the message is in that session's inbox; it does not confirm the peer processed it.${warning}`,
+          text: `Message ${value.messageId} accepted by session ${value.targetSessionId} (${value.targetStatus}). Acceptance means the message is in that session's inbox; it does not confirm the peer processed it.${resumed}${warning}`,
         }]
       },
       presentationMeta: (_args, value) => ({ targetSessionId: value.targetSessionId, messageId: value.messageId }),

@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-10-18
+
+### Added
+
+- Cold-session delivery: when a target session is not live, the plugin resumes
+  it through the deployment's `sessionController` before delivering. Enable or
+  disable it with the new `allowColdDelivery` config field (on by default).
+- `session_send` receipts now report `delivery: 'live' | 'resumed'`.
+- New `cold-delivery-failed` error code for a refused or failed resume.
+
+### Changed
+
+- Profiles without a session controller keep the previous `target-not-live`
+  refusal; archived/subagent-owned sessions are refused by the controller.
+
 ## [0.3.0] - 2026-10-18
 
 ### Added
