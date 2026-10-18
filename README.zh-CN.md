@@ -99,6 +99,15 @@ dsh plugin --profile <profile> add github:XBXyftx/dsh-session-messaging
 dsh plugin --profile <profile> add /absolute/path/to/dsh-session-messaging
 ```
 
+### 排障：从本地 link 切换到 npm 安装
+
+如果 profile 之前 link 了本地源码，又在**应用运行中**安装了 npm 包，运行中的 Loader 可能仍引用旧源码路径；此时删除源码目录的 `node_modules` 会出现 `@deepseek-ai/*` 的 `ERR_MODULE_NOT_FOUND`，即使 npm 包已经安装。先移除再重装 bundle，然后重启应用（客户端部分刷新页面即可）：
+
+```sh
+dsh plugin --profile <profile> remove dsh-session-messaging
+dsh plugin --profile <profile> add dsh-session-messaging@latest
+```
+
 ### 桌面应用
 
 桌面应用使用自己的 profile（例如 `desktop`），用其内置 CLI 或 agent 的 `plugin_manager` 工具安装到该 profile。dsh `0.2.1-rc.2` 会通过 HMR 重载配置，通常无需重启应用即可激活。

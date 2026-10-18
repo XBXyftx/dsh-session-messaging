@@ -103,6 +103,15 @@ The repository ships the built `lib/` output, so a git install does not run a bu
 dsh plugin --profile <profile> add /absolute/path/to/dsh-session-messaging
 ```
 
+### Troubleshooting: switching from a link install
+
+If a profile previously linked a local checkout and later installed the npm package **while the app was running**, the running Loader can still reference the old checkout path. Removing that checkout's `node_modules` then surfaces `ERR_MODULE_NOT_FOUND` for `@deepseek-ai/*` peers even though the npm package is installed. Remove and reinstall the bundle, then restart the app (a page reload is enough for the client half):
+
+```sh
+dsh plugin --profile <profile> remove dsh-session-messaging
+dsh plugin --profile <profile> add dsh-session-messaging@latest
+```
+
 ### Desktop app
 
 The macOS/Windows desktop app uses its own profiles (for example `desktop`). Install with the bundled CLI or the agent's `plugin_manager` tool, targeting that profile. In dsh `0.2.1-rc.2` the configuration reloads through HMR, so the two plugin rows usually activate without restarting the app.
