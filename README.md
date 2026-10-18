@@ -2,6 +2,9 @@
 
 Cross-session messaging for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh): let **user-launched sessions in the same workspace message each other** to coordinate tasks, declared file-write scopes, and conflicts — without turning them into parent/child subagents.
 
+[![CI](https://github.com/XBXyftx/dsh-session-messaging/actions/workflows/ci.yml/badge.svg)](https://github.com/XBXyftx/dsh-session-messaging/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **English** | [简体中文](README.zh-CN.md)
 
 > Status: early preview (`0.1.0`). Targets dsh `0.2.1-rc.2`. dsh plugin APIs are pre-stable, so expect breaking changes on upstream upgrades.
