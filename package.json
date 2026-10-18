@@ -1,7 +1,7 @@
 {
   "name": "dsh-session-messaging",
-  "version": "0.1.0",
-  "description": "Cross-session messaging for DeepSeek Harness: let user-launched sessions in one workspace message each other and coordinate tasks, declared write scopes, and conflicts.",
+  "version": "0.1.1",
+  "description": "Peer messaging between user-launched sessions in one workspace: discover peers, relay coordination messages, pause reception, and get advisory write-scope conflict warnings.",
   "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
@@ -15,11 +15,17 @@
       "types": "./lib/tools.d.ts",
       "default": "./lib/tools.js"
     },
+    "./locale/*.json": "./locale/*.json",
+    "./tools/locale/*.json": "./tools/locale/*.json",
+    "./tools/icon": "./assets/tools-icon.svg",
     "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
   "files": [
     "lib",
+    "locale",
+    "tools/locale",
+    "assets",
     "cordis.patch.yml",
     "README.md",
     "README.zh-CN.md",
@@ -77,5 +83,6 @@
     "bundle": {
       "patch": "./cordis.patch.yml"
     }
-  }
+  },
+  "icon": "./assets/icon.svg"
 }

@@ -33,6 +33,7 @@ A real run in the macOS desktop app (`0.2.1-rc.2`): another user-launched sessio
 - Messages appear inline in the target conversation, attributed to the sending session — no separate inbox UI.
 - Advisory **write-scope conflict detection**: if a peer declared an overlapping path, the receipt and the message envelope carry a `conflict-warning`.
 - No new Session event types and no `SESSION_FORMAT_VERSION` change: the relay is a durable `user/message` with a declared `session-message` source.
+- Bilingual plugin-card metadata and icons (English / 简体中文) for the dsh plugin manager.
 - Bounded: message size, per-sender→target rate limit, same-directory scope, top-level-only, live-only, self-send rejected.
 
 ## How it works

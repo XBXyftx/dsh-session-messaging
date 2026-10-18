@@ -30,6 +30,7 @@ macOS 桌面客户端（`0.2.1-rc.2`）真实运行：另一个用户启动的�
 - 消息直接内联显示在目标会话中，来源归属于发送会话，不需要独立收件箱。
 - 建议性**写范围冲突检测**：与 peer 声明重叠时，回执与消息信封带 `conflict-warning`。
 - 不新增 Session 事件类型、不改 `SESSION_FORMAT_VERSION`：消息就是带 `session-message` source 的 `user/message`。
+- 插件管理卡片提供中英双语标题、简介与图标（English / 简体中文）。
 - 有边界：长度上限、每 sender→target 限频、同目录、仅顶层、仅 live、拒绝自发送。
 
 ## 工作原理

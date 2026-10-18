@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Session Messaging Tools",
+    "description": "Model-facing tools: session_peers (discover peers), session_send (relay a message with optional write scopes), session_reception (pause or resume reception)."
+  }
+}

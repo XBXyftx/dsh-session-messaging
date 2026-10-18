@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "跨会话消息工具",
+    "description": "模型工具：session_peers（发现对等会话）、session_send（发送消息并可声明写范围）、session_reception（暂停或恢复接收）。"
+  }
+}

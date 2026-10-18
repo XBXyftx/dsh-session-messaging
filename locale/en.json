@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Session Messaging",
+    "description": "Peer messaging between user-launched sessions in one workspace: discover peers, relay coordination messages, pause reception, and receive advisory write-scope conflict warnings."
+  }
+}
