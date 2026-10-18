@@ -1,0 +1,11 @@
+# dsh-session-messaging bundle patch.
+# Mounts the Host-side service and its model-facing tools. Both rows are
+# inserted over the profile root; later profile/--patch layers can override
+# them by id. The service must load before the tools consume it; activation is
+# service-availability driven, so row order is documentation only.
+- insert:
+    - id: session-messaging
+      name: dsh-session-messaging
+
+    - id: session-messaging-tools
+      name: dsh-session-messaging/tools

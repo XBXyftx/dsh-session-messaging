@@ -1,0 +1,74 @@
+/**
+ * Host-side session-messaging service. It discovers live user-launched peers in
+ * the same working directory, enforces opt-in plus rate limits, and relays a
+ * message through the target agent's inbox as a durable `user/message` with the
+ * plugin's `session-message` source. It never appends a new Session event kind,
+ * so the session format and its readers stay unchanged.
+ * @module dsh-session-messaging/service
+ */
+import { Service, type Context } from '@deepseek-ai/cordis';
+import type { Agent } from '@deepseek-ai/dsh-agent';
+import { Config } from './config.ts';
+import type { SessionMessagingConfig } from './config.ts';
+import type { PeerView, SendReceipt, SendRequest } from './protocol.ts';
+/** One session's receive consent and advisory write scopes. */
+interface ConsentEntry {
+    readonly enabled: boolean;
+    readonly writeScopes: readonly string[];
+    readonly updatedAt: number;
+}
+declare module '@deepseek-ai/cordis' {
+    interface Context {
+        /** Cross-session messaging service provided by this plugin. */
+        sessionMessaging: SessionMessagingService;
+    }
+}
+/**
+ * Relay service shared by the model-facing tools. It exposes only same-process,
+ * live, top-level sessions in the current MVP; cold-session delivery and
+ * durable consent are follow-up work.
+ */
+export declare class SessionMessagingService extends Service {
+    static inject: string[];
+    /** Loader-read configuration schema; defaults apply when the row omits `config`. */
+    static Config: import("@deepseek-ai/schemastery").default<SessionMessagingConfig>;
+    private readonly config;
+    private readonly limiter;
+    private readonly consent;
+    /**
+     * @param ctx - Cordis context with `agents` and `sessions` ready.
+     * @param config - validated plugin configuration.
+     */
+    constructor(ctx: Context, config: SessionMessagingConfig);
+    /**
+     * List live user-launched peers the caller may address.
+     * @param caller - the agent whose tool call is inspecting peers.
+     * @returns peer views ordered by session registration.
+     */
+    listPeers(caller: Agent): PeerView[];
+    /**
+     * Set this session's reception state and advisory write scopes.
+     * Sessions are mutually visible and can message each other by default; pass
+     * `enabled: false` to pause reception explicitly.
+     * @param caller - the session being configured.
+     * @param enabled - whether peers may relay messages to this session.
+     * @param writeScopes - advisory scopes this session is currently changing.
+     * @returns the stored consent entry.
+     */
+    setConsent(caller: Agent, enabled: boolean, writeScopes?: readonly string[]): ConsentEntry;
+    /**
+     * Relay one message to a live peer session.
+     *
+     * Success means the target agent accepted the message into its inbox and the
+     * session flush acknowledged persistence. It does not mean the target model
+     * has read or acted on it.
+     * @param caller - sending agent, taken from the tool execution identity.
+     * @param request - target, body, and optional advisory scopes.
+     * @returns a receipt with the sender-minted message id.
+     * @throws {MessagingError} for every refused or failed delivery.
+     */
+    send(caller: Agent, request: SendRequest): Promise<SendReceipt>;
+}
+/** Loader configuration schema re-exported from this module for tooling that imports the class directly. */
+export { Config };
+export default SessionMessagingService;
