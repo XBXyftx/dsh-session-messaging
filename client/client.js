@@ -119,7 +119,9 @@ window.__ModuleLoader__.load({
       const [currentVersion, setCurrentVersion] = React.useState(FALLBACK_VERSION)
       const [update, setUpdate] = React.useState({ status: 'checking', latest: undefined })
       const ready = snapshot.status === 'ready'
-      const enabled = (snapshot.value && snapshot.value.sameDirectoryOnly) === true
+      // The checkbox reads "allow cross-directory messages", which is the
+      // opposite of the stored `sameDirectoryOnly` restriction.
+      const enabled = (snapshot.value && snapshot.value.sameDirectoryOnly) !== true
 
       const check = React.useCallback(async () => {
         setUpdate(previous => ({ ...previous, status: 'checking' }))
@@ -145,7 +147,7 @@ window.__ModuleLoader__.load({
         setSaving(true)
         setSaveFailed(false)
         try {
-          const accepted = await form.set('sameDirectoryOnly', !enabled)
+          const accepted = await form.set('sameDirectoryOnly', enabled)
           if (!accepted) setSaveFailed(true)
         } catch (_error) {
           setSaveFailed(true)

@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- The sidebar panel's "Allow cross-directory messages" checkbox was wired to
+  `sameDirectoryOnly` with the opposite meaning: checking it stored
+  `sameDirectoryOnly: true`, so `session_peers` hid every peer in another
+  working directory and `session_send` failed with `cross-directory`. The
+  checkbox is now checked when `sameDirectoryOnly` is not `true`, and toggling
+  it stores the matching value.
+
 ## [0.4.0] - 2026-10-18
 
 ### Added
