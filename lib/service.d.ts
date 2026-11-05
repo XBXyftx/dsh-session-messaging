@@ -76,9 +76,10 @@ export declare class SessionMessagingService extends Service {
      * The peer channel is deliberately symmetric: a subagent is neither listed
      * nor allowed to relay. Subagent sessions keep using the existing
      * parent/child `send_message` channel instead of a one-way cross-session
-     * side channel.
+     * side channel. A sidebar fork is user-launched and stays top-level: fork
+     * seed lineage is not a delegation marker.
      * @param caller - the agent whose tool call is being validated.
-     * @throws {MessagingError} with `caller-not-top-level` for a subagent session.
+     * @throws {MessagingError} with `caller-not-top-level` for a delegated child.
      */
     private assertTopLevelCaller;
     /**

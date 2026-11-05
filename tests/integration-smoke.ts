@@ -11,7 +11,7 @@
 import assert from 'node:assert/strict'
 import { Context } from '@deepseek-ai/cordis'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
-import { SessionId } from '@deepseek-ai/dsh-session'
+import { SessionId, SessionLogOffset } from '@deepseek-ai/dsh-session'
 import { mountAgentLoopTestDependencies, mountAgentLoopTestHarness } from '@deepseek-ai/dsh-agent-loop-testkit'
 import SessionMessagingService from '../src/service.ts'
 import * as Tools from '../src/tools.ts'
@@ -55,10 +55,25 @@ try {
   })
   const subagent = subagentHandle.agent
 
+  // A real sidebar fork: durable seed lineage (`parentSession` + `isSeeded`)
+  // without any subagent marker. The user launched it, so it stays a peer in
+  // both directions — this is the regression the fork predicate caused.
+  const forkHandle = await ctx.agents.create({
+    sessionId: SessionId('session-fork'),
+    seed: sender.session.snapshotEvents(),
+    inheritedEventCount: SessionLogOffset(sender.session.snapshotEvents().length),
+    meta: { cwd: CWD, parentSession: sender.id, isSeeded: true },
+    agentOptions: { provider: 'test', model: 'test' },
+  })
+  const fork = forkHandle.agent
+
   // Discovery: live top-level peers are addressable across working directories by default.
   const peers = ctx.sessionMessaging.listPeers(sender)
-  assert.deepEqual(peers.map(peer => peer.sessionId), ['session-b', 'session-c'])
+  assert.deepEqual(peers.map(peer => peer.sessionId), ['session-b', 'session-c', 'session-fork'])
   assert.equal(peers.every(peer => peer.canReceive), true)
+  // The fork is a top-level peer itself, and it sees the sessions that launched it.
+  assert.deepEqual(ctx.sessionMessaging.listPeers(fork).map(peer => peer.sessionId), ['session-a', 'session-b', 'session-c'])
+
 
   // The tools are registered through the real registry.
   const names = ctx.tools.schemas().map(schema => schema.name)
@@ -110,6 +125,31 @@ try {
   assert.match(relayText, /conflict-warning: session session-b also declared src\/ui\.ts/)
   assert.match(relayText, /I am editing src\/ui\.ts/)
   assert.match(relayText, /peer, not an authority/)
+
+  // Bidirectional relay with the fork: it is a user-launched peer, so it can
+  // send to its source session and receive from it. Neither direction may be
+  // refused as caller-not-top-level / target-not-top-level.
+  const fromFork = await ctx.sessionMessaging.send(fork, {
+    targetSessionId: 'session-a',
+    message: 'fork reports in',
+  })
+  assert.equal(fromFork.accepted, true)
+  await sender.whenIdle()
+  assert.equal(
+    sender.session.deriveMessages().some(message =>
+      (message.source as { kind?: string }).kind === 'session-message'),
+    true,
+  )
+  const toFork = await ctx.sessionMessaging.send(sender, {
+    targetSessionId: 'session-fork',
+    message: 'source replies to the fork',
+  })
+  assert.equal(toFork.accepted, true)
+  await fork.whenIdle()
+  const forkRelay = fork.session.deriveMessages().find(message =>
+    (message.source as { kind?: string }).kind === 'session-message')
+  assert.notEqual(forkRelay, undefined)
+  assert.match(textOf(forkRelay as { content: readonly { type: string; text?: string }[] }), /source replies to the fork/)
 
   // Symmetric boundary: a subagent is neither listed nor allowed to relay,
   // and a top-level session cannot target a subagent.

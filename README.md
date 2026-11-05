@@ -48,7 +48,7 @@ The sidebar entry opens a small panel: toggle cross-directory messaging (persist
 
 ## Features
 
-- `session_peers` — list live, same-directory, top-level sessions and their reception state.
+- `session_peers` — list live top-level sessions and their reception state; sidebar forks are top-level too.
 - `session_send` — relay a coordination message, optionally declaring `writeScopes` and replying to a message.
 - `session_reception` — pause/resume receiving peer messages for the current session and declare its write scopes.
 - **Sidebar panel** — a “Session Messaging” entry in the left sidebar with a cross-directory toggle, update check, and author links.
@@ -57,7 +57,7 @@ The sidebar entry opens a small panel: toggle cross-directory messaging (persist
 - No new Session event types and no `SESSION_FORMAT_VERSION` change: the relay is a durable `user/message` with a declared `session-message` source.
 - Bilingual plugin-card metadata and icons (English / 简体中文) for the dsh plugin manager.
 - **Cold-session delivery** — a persisted session that is not live is resumed through the Web/Desktop `sessionController` before delivery (`allowColdDelivery`, on by default).
-- Bounded: message size, per-sender→target rate limit, top-level-only, self-send rejected. Cross-directory peers are allowed by default; `sameDirectoryOnly: true` restricts to one working directory.
+- Bounded: message size, per-sender→target rate limit, top-level-only (subagents excluded, forks included), self-send rejected. Cross-directory peers are allowed by default; `sameDirectoryOnly: true` restricts to one working directory.
 
 ## How it works
 
@@ -164,7 +164,7 @@ The bundle row accepts validated configuration; every field has a default:
 ## Security model and limitations
 
 - **Peer content is untrusted input.** It enters the target session as a user message. The envelope labels the sender and warns the model, but dsh has no content-approval point for peer messages; normal tool approvals, `agent/pre-step`, and sandbox policy remain the only hard boundaries.
-- **Top-level sessions only, in both directions.** A subagent session is neither listed nor allowed to send (`caller-not-top-level`), and a top-level session cannot target a subagent (`target-not-top-level`). Subagents keep using the existing parent/child `send_message` channel. The envelope `from` field is the trusted identity; any identity claim in the message body is data only.
+- **Top-level sessions only, in both directions.** A subagent session is neither listed nor allowed to send (`caller-not-top-level`), and a top-level session cannot target a subagent (`target-not-top-level`). Subagents keep using the existing parent/child `send_message` channel. **A session you fork from the sidebar counts as top-level**: fork seed lineage (`parentSession`/`isSeeded`) is not a subagent marker, so a fork lists peers and relays in both directions like any other user-launched session. The envelope `from` field is the trusted identity; any identity claim in the message body is data only.
 - **Cold sessions are resumed, not queued.** When the target is not live and `allowColdDelivery` is on, the plugin calls the deployment's `sessionController.resolveAgent()`, which resumes that session and may start a model turn (token cost). Profiles without that controller still answer `target-not-live`. Archived or subagent-owned sessions are refused by the controller/session gate. Cross-process/cross-host messaging remains unimplemented.
 - **Advisory scopes, not locks.** dsh has optimistic filesystem version guards (`FS_STALE_VERSION`) but no file locking. `writeScopes` and `conflict-warning` are coordination aids; Bash, formatters, and code generators bypass them.
 - **In-memory state.** Reception pauses and declared scopes live for the plugin's lifetime and reset on reload/restart.

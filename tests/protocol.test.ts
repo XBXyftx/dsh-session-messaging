@@ -33,10 +33,16 @@ test('normalizeWriteScopes normalizes separators, trims, and deduplicates', () =
   assert.throws(() => normalizeWriteScopes(Array.from({ length: 33 }, (_, index) => `f${index}`)), (error: unknown) => error instanceof MessagingError)
 })
 
-test('isTopLevelSessionHeader accepts only user-launched sessions', () => {
+test('isTopLevelSessionHeader accepts user-launched sessions, including forks', () => {
   assert.equal(isTopLevelSessionHeader({}), true)
+  // A sidebar fork carries `parentSession` + `isSeeded` but no subagent marker:
+  // seed lineage alone must not exclude a user-launched session.
+  assert.equal(isTopLevelSessionHeader({ parentSession: 's' }), true)
+  assert.equal(isTopLevelSessionHeader({ parentSession: 's', isSeeded: true }), true)
+  // A subagent child is classified by `origin` and/or a non-zero depth.
   assert.equal(isTopLevelSessionHeader({ parentSession: 's', origin: 'subagent' }), false)
-  assert.equal(isTopLevelSessionHeader({ parentSession: 's' }), false)
+  assert.equal(isTopLevelSessionHeader({ origin: 'subagent' }), false)
+  assert.equal(isTopLevelSessionHeader({ parentSession: 's', delegationDepth: 1 }), false)
   assert.equal(isTopLevelSessionHeader({ delegationDepth: 1 }), false)
 })
 

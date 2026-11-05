@@ -127,15 +127,16 @@ export class SessionMessagingService extends Service {
    * The peer channel is deliberately symmetric: a subagent is neither listed
    * nor allowed to relay. Subagent sessions keep using the existing
    * parent/child `send_message` channel instead of a one-way cross-session
-   * side channel.
+   * side channel. A sidebar fork is user-launched and stays top-level: fork
+   * seed lineage is not a delegation marker.
    * @param caller - the agent whose tool call is being validated.
-   * @throws {MessagingError} with `caller-not-top-level` for a subagent session.
+   * @throws {MessagingError} with `caller-not-top-level` for a delegated child.
    */
   private assertTopLevelCaller(caller: Agent): void {
     if (isTopLevelSessionHeader(caller.session.header)) return
     throw new MessagingError(
       'caller-not-top-level',
-      `session ${caller.id} is not a user-launched top-level session; subagent sessions use the parent/child channel`,
+      `session ${caller.id} is a delegated subagent session; use the parent/child channel instead of the peer channel`,
     )
   }
 
@@ -255,7 +256,10 @@ export class SessionMessagingService extends Service {
       delivery = 'resumed'
     }
     if (!isTopLevelSessionHeader(target.session.header)) {
-      throw new MessagingError('target-not-top-level', `session ${targetId} is not a user-launched top-level session`)
+      throw new MessagingError(
+        'target-not-top-level',
+        `session ${targetId} is a delegated subagent session; use the parent/child channel instead of the peer channel`,
+      )
     }
     if (this.config.sameDirectoryOnly.get() && !sameDirectory(caller.session.header.cwd, target.session.header.cwd)) {
       throw new MessagingError('cross-directory', 'the target session works in a different directory')

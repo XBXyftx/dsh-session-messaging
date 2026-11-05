@@ -57,15 +57,28 @@ export interface PeerView {
 /** Minimal header fields needed to distinguish a top-level session. */
 export interface SessionLineageHeader {
     readonly parentSession?: unknown;
+    readonly isSeeded?: boolean;
     readonly origin?: string;
     readonly delegationDepth?: number;
 }
 /**
  * Test whether a session header describes a user-launched top-level session.
- * Subagent children carry a parent session, `origin: 'subagent'`, or a
- * non-zero delegation depth.
+ *
+ * Only two durable fields mark a session as a delegated subagent child:
+ * `origin: 'subagent'` and a non-zero `delegationDepth`. `parentSession` is
+ * **not** such a marker: it records fork seed lineage, and dsh writes it both
+ * for sidebar forks (no `origin`, depth 0) and for subagent children. Treating
+ * it as a subagent signal excluded every user fork from the peer channel, so a
+ * forked session could neither list peers nor send or receive.
+ *
+ * This mirrors the host definition: `ctx.agents.roots()` classifies runtime
+ * ownership and states that a resumed fork may still be a root
+ * (`packages/core/agent/src/index.ts`), while subagent children are created
+ * with `origin: 'subagent'` plus `delegationDepth`
+ * (`packages/subagent/subagent/src/child-agent.ts`). The UI hides rows by
+ * `origin === 'subagent'` alone, never by lineage.
  * @param header - the durable header fields to classify.
- * @returns true only for a top-level session.
+ * @returns true for a user-launched top-level session, including a fork.
  */
 export declare function isTopLevelSessionHeader(header: SessionLineageHeader): boolean;
 /**

@@ -4,6 +4,30 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-11-05
+
+### Fixed
+
+- **A sidebar fork is now a top-level peer.** The top-level test treated a
+  durable `parentSession` as a subagent marker, but dsh writes that field for
+  fork **seed lineage** as well: a sidebar fork records `parentSession` and
+  `isSeeded` with no `origin` and a depth of 0. A forked session therefore
+  failed every peer call with `caller-not-top-level`, and the sessions that
+  forked from it could not see it in `session_peers` either — the channel was
+  broken in both directions. Classification now matches the host: only
+  `origin: 'subagent'` and a non-zero `delegationDepth` mark a delegated child,
+  which is exactly how `ctx.agents.roots()` and the subagent factory classify
+  sessions. Subagent refusal is unchanged.
+- The error message no longer claims every rejected caller is a subagent.
+
+### Tests
+
+- Unit: a fork header (`parentSession` with `isSeeded`, no `origin`) is
+  top-level; `origin: 'subagent'` and any non-zero depth still are not.
+- Integration: a real seeded fork Agent lists peers, receives from its source
+  session, and relays back to it; the subagent boundary still refuses both
+  directions.
+
 ## [0.4.0] - 2026-10-18
 
 ### Added
